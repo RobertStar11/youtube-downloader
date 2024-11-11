@@ -1,8 +1,7 @@
-from flask import Flask, request, render_template, send_file, redirect, url_for
+from flask import Flask, request, render_template, send_file
 import yt_dlp as youtube_dl
 import re
 import os
-from io import BytesIO
 
 app = Flask(__name__)
 
@@ -25,17 +24,16 @@ def download_video():
         ydl_opts = {
             'format': 'best',
             'outtmpl': '%(title)s.%(ext)s',
+            'cookiefile': 'cookies.txt'  # Usar el archivo de cookies para autenticación
         }
         
-        # Usamos un buffer en memoria para el archivo
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=False)
-            video_title = info_dict.get('title', None)
+            video_title = info_dict.get('title', 'video')
+            file_name = f"{video_title}.mp4"
             ydl.download([url])
         
-        file_name = f"{video_title}.mp4"
-        
-        # Comprobamos que el archivo se descargó
+        # Comprobar si el archivo se descargó correctamente
         if os.path.exists(file_name):
             return send_file(file_name, as_attachment=True)
         else:
